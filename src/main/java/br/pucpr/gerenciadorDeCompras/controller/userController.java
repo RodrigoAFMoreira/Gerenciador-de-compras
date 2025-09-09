@@ -16,21 +16,17 @@ public class userController {
 
     @GetMapping
     public ResponseEntity<List<userDTO>> findAll() {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(users);
+        return ResponseEntity.ok(users);
     }
 
     @PostMapping
-    public ResponseEntity<userDTO>
-    save(@RequestBody userDTO user) {
+    public ResponseEntity<userDTO> save(@RequestBody userDTO user) {
         users.add(user);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(user); }
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    }
 
     @PutMapping("/{id}")
-    public ResponseEntity<userDTO> update(@PathVariable Long id, @RequestBody userDTO updatedUser) {
+    public ResponseEntity<userDTO> update(@PathVariable Integer id, @RequestBody userDTO updatedUser) {
         Optional<userDTO> existingUserOpt = users.stream()
                 .filter(u -> u.getId().equals(id))
                 .findFirst();
@@ -39,29 +35,14 @@ public class userController {
             userDTO existingUser = existingUserOpt.get();
             existingUser.setName(updatedUser.getName());
             existingUser.setEmail(updatedUser.getEmail());
-
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .body(existingUser);
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
+            return ResponseEntity.ok(existingUser);
         }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
         boolean removed = users.removeIf(u -> u.getId().equals(id));
-
-        if (removed) {
-            return ResponseEntity
-                    .status(HttpStatus.NO_CONTENT)
-                    .build();
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
+        return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }
