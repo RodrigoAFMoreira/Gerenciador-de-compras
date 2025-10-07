@@ -75,12 +75,49 @@
             <tbody id="itemTableBody"></tbody>
         </table>
     </div>
+
+    <!--Tabela de compartimentos add -->
+    <div class="table-container">
+        <h3>Compartimentos Cadastrados</h3>
+
+        <!--Formulário de Compartimento-->
+        <div class="form-container">
+            <h4 id="compFormTitle">Adicionar Compartimento</h4>
+            <form id="compForm">
+                <input type="hidden" id="compId">
+                <div class="mb-3">
+                    <label for="compNome" class="form-label">Nome do Compartimento</label>
+                    <input type="text" class="form-control" id="compNome" required>
+                </div>
+                <div class="mb-3">
+                    <label for="compItem" class="form-label">Item</label>
+                    <select class="form-select" id="compItem">
+                        <option value="">-- Nenhum --</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" id="compSubmitButton">Salvar</button>
+                <button type="button" class="btn btn-secondary" id="compCancelButton" style="display: none;">Cancelar</button>
+            </form>
+            <div id="compErrorMessage" class="error"></div>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Item</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody id="compTableBody"></tbody>
+        </table>
+    </div>
+
 </div>
 
-<!--Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!--Script-->
 <script>
     const apiUrl = '/api/v1/itens';
     const form = document.getElementById('itemForm');
@@ -90,10 +127,8 @@
     const submitButton = document.getElementById('submitButton');
     const cancelButton = document.getElementById('cancelButton');
 
-    // Carrega itens ao abrir a página
-    window.onload = fetchItems;
+    window.onload = () => { fetchItems(); fetchCompartimentos(); };
 
-    // Buscar itens
     async function fetchItems() {
         try {
             const response = await fetch(apiUrl);
@@ -119,7 +154,6 @@
         }
     }
 
-    // Criar ou atualizar item
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorMessage.textContent = '';
@@ -151,7 +185,6 @@
         }
     });
 
-    // Editar item
     async function editItem(id) {
         try {
             const response = await fetch(`${apiUrl}/${id}`);
@@ -171,7 +204,6 @@
         }
     }
 
-    // Excluir item
     async function deleteItem(id) {
         if (!confirm('Tem certeza que deseja excluir este item?')) return;
 
@@ -184,7 +216,6 @@
         }
     }
 
-    // Resetar formulário
     function resetForm() {
         form.reset();
         document.getElementById('itemId').value = '';
@@ -194,8 +225,130 @@
         errorMessage.textContent = '';
     }
 
-    // Cancelar edição
     cancelButton.addEventListener('click', resetForm);
+</script>
+
+<script>
+    const compApiUrl = '/api/v1/compartimentos';
+    const compForm = document.getElementById('compForm');
+    const compTableBody = document.getElementById('compTableBody');
+    const compErrorMessage = document.getElementById('compErrorMessage');
+    const compFormTitle = document.getElementById('compFormTitle');
+    const compSubmitButton = document.getElementById('compSubmitButton');
+    const compCancelButton = document.getElementById('compCancelButton');
+    const compItemSelect = document.getElementById('compItem');
+
+    async function updateItemSelect() {
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Erro ao buscar itens');
+            const items = await response.json();
+            compItemSelect.innerHTML = '<option value="">-- Nenhum --</option>';
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.nome;
+                compItemSelect.appendChild(option);
+            });
+        } catch (error) {
+            compErrorMessage.textContent = error.message;
+        }
+    }
+
+    async function fetchCompartimentos() {
+        await updateItemSelect();
+        try {
+            const response = await fetch(compApiUrl);
+            if (!response.ok) throw new Error('Erro ao buscar compartimentos');
+            const comps = await response.json();
+            compTableBody.innerHTML = '';
+            comps.forEach(comp => {
+                const row = document.createElement('tr');
+                const itemText = comp.itemId ? `ID ${comp.itemId}` : '-';
+                row.innerHTML = `
+                    <td>${comp.id}</td>
+                    <td>${comp.nome}</td>
+                    <td>${itemText}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editCompartimento(${comp.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCompartimento(${comp.id})">Excluir</button>
+                    </td>
+                `;
+                compTableBody.appendChild(row);
+            });
+        } catch (error) {
+            compErrorMessage.textContent = error.message;
+        }
+    }
+
+    compForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        compErrorMessage.textContent = '';
+
+        const comp = {
+            id: document.getElementById('compId').value || null,
+            nome: document.getElementById('compNome').value,
+            itemId: compItemSelect.value ? Number(compItemSelect.value) : null
+        };
+
+        try {
+            const method = comp.id ? 'PUT' : 'POST';
+            const url = comp.id ? `${compApiUrl}/${comp.id}` : compApiUrl;
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(comp)
+            });
+            if (!response.ok) {
+                throw new Error(comp.id ? 'Erro ao atualizar compartimento' : 'Erro ao criar compartimento');
+            }
+
+            resetCompForm();
+            fetchCompartimentos();
+        } catch (error) {
+            compErrorMessage.textContent = error.message;
+        }
+    });
+
+    async function editCompartimento(id) {
+        try {
+            const response = await fetch(`${compApiUrl}/${id}`);
+            if (!response.ok) throw new Error('Compartimento não encontrado');
+            const comp = await response.json();
+
+            document.getElementById('compId').value = comp.id;
+            document.getElementById('compNome').value = comp.nome;
+            compItemSelect.value = comp.itemId || '';
+
+            compFormTitle.textContent = 'Editar Compartimento';
+            compSubmitButton.textContent = 'Atualizar';
+            compCancelButton.style.display = 'inline';
+        } catch (error) {
+            compErrorMessage.textContent = error.message;
+        }
+    }
+
+    async function deleteCompartimento(id) {
+        if (!confirm('Tem certeza que deseja excluir este compartimento?')) return;
+        try {
+            const response = await fetch(`${compApiUrl}/${id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Erro ao excluir compartimento');
+            fetchCompartimentos();
+        } catch (error) {
+            compErrorMessage.textContent = error.message;
+        }
+    }
+
+    function resetCompForm() {
+        compForm.reset();
+        document.getElementById('compId').value = '';
+        compFormTitle.textContent = 'Adicionar Compartimento';
+        compSubmitButton.textContent = 'Salvar';
+        compCancelButton.style.display = 'none';
+        compErrorMessage.textContent = '';
+    }
+
+    compCancelButton.addEventListener('click', resetCompForm);
 </script>
 </body>
 </html>

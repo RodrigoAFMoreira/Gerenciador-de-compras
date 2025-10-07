@@ -1,0 +1,16 @@
+package br.pucpr.gerenciadorDeCompras.model;
+
+import br.pucpr.gerenciadorDeCompras.security.Role;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class User {
+    private String email;
+    private String firstName;
+    private String lastName;
+    private Role role;
+}
