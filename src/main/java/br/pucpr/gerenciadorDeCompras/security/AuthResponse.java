@@ -2,10 +2,6 @@ package br.pucpr.gerenciadorDeCompras.security;
 
 import java.util.Date;
 
-//A classe AuthResponse no pacote br.pucpr.gerenciadorDeCompras.security é um DTO (Data Transfer Object) que encapsula
-//a resposta de autenticação retornada ao cliente após um login bem-sucedido em uma aplicação que utiliza autenticação JWT
-//(JSON Web Token). Ela é usada no contexto do LoginController e do AuthService, conforme mencionado anteriormente.
-
 public class AuthResponse {
 
     private String email;

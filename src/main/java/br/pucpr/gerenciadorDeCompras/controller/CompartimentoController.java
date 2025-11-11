@@ -1,60 +1,83 @@
 package br.pucpr.gerenciadorDeCompras.controller;
 
 import br.pucpr.gerenciadorDeCompras.dto.CompartimentoDTO;
+import br.pucpr.gerenciadorDeCompras.model.Compartimento;
+import br.pucpr.gerenciadorDeCompras.model.Item;
+import br.pucpr.gerenciadorDeCompras.repository.CompartimentoRepository;
+import br.pucpr.gerenciadorDeCompras.repository.ItemRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+
 
 @RestController
 @RequestMapping("/api/v1/compartimentos")
+@RequiredArgsConstructor
 public class CompartimentoController {
 
-    private final List<CompartimentoDTO> compartimentos = new ArrayList<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final CompartimentoRepository compartimentoRepository;
+    private final ItemRepository itemRepository;
 
     @GetMapping
-    public ResponseEntity<List<CompartimentoDTO>> findAll() {
-        return ResponseEntity.ok(compartimentos);
+    public List<CompartimentoDTO> findAll() {
+        return compartimentoRepository.findAll().stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CompartimentoDTO> findById(@PathVariable Long id) {
-        return compartimentos.stream()
-                .filter(c -> c.getId().equals(id))
-                .findFirst()
-                .map(ResponseEntity::ok)
+        return compartimentoRepository.findById(id)
+                .map(c -> ResponseEntity.ok(toDTO(c)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<CompartimentoDTO> save(@RequestBody CompartimentoDTO compartimento) {
-        compartimento.setId(idGenerator.getAndIncrement());
-        compartimentos.add(compartimento);
-        return ResponseEntity.status(HttpStatus.CREATED).body(compartimento);
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
+    public ResponseEntity<CompartimentoDTO> save(@RequestBody CompartimentoDTO dto) {
+        Compartimento c = fromDTO(dto);
+        c = compartimentoRepository.save(c);
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDTO(c));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CompartimentoDTO> update(@PathVariable Long id, @RequestBody CompartimentoDTO updated) {
-        Optional<CompartimentoDTO> existingOpt = compartimentos.stream()
-                .filter(c -> c.getId().equals(id))
-                .findFirst();
-
-        if (existingOpt.isPresent()) {
-            CompartimentoDTO existing = existingOpt.get();
-            existing.setNome(updated.getNome());
-            existing.setItemId(updated.getItemId());
-            return ResponseEntity.ok(existing);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CompartimentoDTO> update(@PathVariable Long id, @RequestBody CompartimentoDTO dto) {
+        return compartimentoRepository.findById(id)
+                .map(existing -> {
+                    existing.setNome(dto.getNome());
+                    existing.setItem(dto.getItemId() != null ?
+                            itemRepository.findById(dto.getItemId()).orElse(null) : null);
+                    return ResponseEntity.ok(toDTO(compartimentoRepository.save(existing)));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        boolean removed = compartimentos.removeIf(c -> c.getId().equals(id));
-        return removed ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        if (compartimentoRepository.existsById(id)) {
+            compartimentoRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    private Compartimento fromDTO(CompartimentoDTO dto) {
+        Item item = dto.getItemId() != null ? itemRepository.findById(dto.getItemId()).orElse(null) : null;
+        return Compartimento.builder()
+                .id(dto.getId())
+                .nome(dto.getNome())
+                .item(item)
+                .build();
+    }
+
+    private CompartimentoDTO toDTO(Compartimento c) {
+        Long itemId = c.getItem() != null ? c.getItem().getId() : null;
+        return new CompartimentoDTO(c.getId(), c.getNome(), itemId);
     }
 }

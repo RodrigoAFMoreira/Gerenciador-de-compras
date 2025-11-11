@@ -13,11 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-//A classe JwtAuthFilter no pacote br.pucpr.gerenciadorDeCompras.security é um filtro do Spring Security que implementa
-// autenticação baseada em JWT (JSON Web Token) para proteger endpoints da aplicação. Ele estende a classe OncePerRequestFilter,
-// garantindo que o filtro seja executado uma vez por requisição HTTP. O filtro verifica a presença de um token JWT no cabeçalho
-// Authorization, valida o token e configura o contexto de segurança do Spring Security para autenticar o usuário.
-
 @Component
 
 public class JwtAuthFilter extends OncePerRequestFilter {

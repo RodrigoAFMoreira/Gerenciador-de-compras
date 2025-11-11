@@ -13,12 +13,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-//A classe JwtService no pacote br.pucpr.gerenciadorDeCompras.security é um serviço Spring responsável por gerenciar
-// operações relacionadas a JSON Web Tokens (JWT). Ele lida com a geração, validação e extração de informações de tokens JWT,
-// sendo uma peça central no sistema de autenticação da aplicação. A classe é usada pelo AuthService para gerar tokens e pelo
-// JwtAuthFilter para validá-los.
-
-
 @Service
 public class JwtService {
     private static final String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
@@ -33,7 +27,10 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> extraClaims = new HashMap<>();
+        String role = userDetails.getAuthorities().iterator().next().getAuthority();
+        extraClaims.put("role", "ROLE_" + role);
+        return generateToken(extraClaims, userDetails);
     }
 
     public String generateToken(
@@ -45,7 +42,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24)) // 24h
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -64,7 +61,6 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-
         return Jwts
                 .parserBuilder()
                 .setSigningKey(getSignInKey())

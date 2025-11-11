@@ -5,10 +5,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
-// A classe UserAuthentication implementa UserDetails do Spring Security.
-// Representa o usuário autenticado no sistema, contendo suas informações básicas
-// (id, nome, e-mail, senha e papel). Também fornece as permissões (authorities)
-// com base no papel (Role) atribuído, utilizadas pelo Spring para controle de acesso.
 
 public class UserAuthentication implements UserDetails {
     private Integer id;

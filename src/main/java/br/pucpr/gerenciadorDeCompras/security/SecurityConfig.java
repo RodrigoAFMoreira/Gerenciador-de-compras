@@ -49,12 +49,19 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails user = User
-                .withUsername("admin")
+        UserDetails admin = User
+                .withUsername("admin@gmail.com")
                 .password(passwordEncoder.encode("123"))
                 .roles("ADMIN")
                 .build();
-        return new InMemoryUserDetailsManager(user);
+
+        UserDetails user123 = User
+                .withUsername("user@gmail.com")
+                .password(passwordEncoder.encode("123"))
+                .roles("USER")
+                .build();
+
+        return new InMemoryUserDetailsManager(admin, user123);
     }
 
     @Bean

@@ -8,10 +8,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-// A classe SwaggerConfig configura a documentação da API usando o OpenAPI (Swagger).
-// Define informações básicas da API (título e versão) e adiciona suporte à autenticação JWT
-// no Swagger UI, permitindo testar endpoints protegidos diretamente pela interface.
-
 @Configuration
 public class SwaggerConfig {
     @Bean
