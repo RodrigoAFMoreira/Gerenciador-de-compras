@@ -1,33 +1,507 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - Gerenciador de Compras</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <title>Gerenciador de Compras</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        .top-bar {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card { margin-bottom: 1.5rem; }
+        .table th, .table td { vertical-align: middle; }
+        .btn-sm i { margin-right: 0.25rem; }
+        .admin-only { display: none; }
+        .modal-header .btn-close { margin: -1rem -1rem -1rem auto; }
+        body { background-color: #f5f5f5; }
+    </style>
 </head>
-<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+<body>
+<div class="container-fluid">
 
-<div class="card shadow p-4" style="width: 22rem;">
-    <h3 class="text-center mb-4">Gerenciador de Compras</h3>
-
-    <form id="loginForm" onsubmit="window.location.href='./menu.html'; return false;">
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" placeholder="Digite seu email" required>
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <h1>Gerenciador de Compras</h1>
+        <div>
+            <button id="loginBtn" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">
+                Login
+            </button>
+            <button id="logoutBtn" class="btn btn-outline-danger btn-sm" style="display:none;">
+                Sair
+            </button>
+            <button class="btn btn-info btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#searchModal">
+                Buscar por ID
+            </button>
         </div>
-        <div class="mb-3">
-            <label for="senha" class="form-label">Senha</label>
-            <input type="password" class="form-control" id="senha" placeholder="Digite sua senha" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Entrar</button>
-    </form>
+    </div>
 
-    <div class="text-center mt-3">
-        <a href="./criarUser.html">Criar conta</a>
+    <div class="row mt-4">
+
+        <!-- ITENS -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Itens</h5>
+                    <button class="btn btn-success btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#itemModal" onclick="openItemForm()">
+                        Adicionar
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0" id="itensTable">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Validade</th>
+                            <th>Categoria</th>
+                            <th class="admin-only">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPARTIMENTOS -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Compartimentos</h5>
+                    <button class="btn btn-success btn-sm admin-only" data-bs-toggle="modal" data-bs-target="#compartimentoModal" onclick="openCompartimentoForm()">
+                        Adicionar
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0" id="compartimentosTable">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Item</th>
+                            <th class="admin-only">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- LOGIN MODAL -->
+<div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Login</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" value="admin@gmail.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Senha</label>
+                        <input type="password" class="form-control" id="loginSenha" value="123" required>
+                    </div>
+                    <div id="loginError" class="text-danger mb-2"></div>
+                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ITEM MODAL -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="itemForm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemModalTitle">Adicionar Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="itemId">
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="itemNome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data de Validade</label>
+                        <input type="date" class="form-control" id="itemValidade" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Categoria</label>
+                        <input type="text" class="form-control" id="itemCategoria" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- COMPARTIMENTO MODAL -->
+<div class="modal fade" id="compartimentoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form id="compartimentoForm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="compartimentoModalTitle">Adicionar Compartimento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="compartimentoId">
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="compartimentoNome" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Item (opcional)</label>
+                        <select class="form-select" id="compartimentoItemId">
+                            <option value="">Nenhum</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- BUSCAR POR ID MODAL -->
+<div class="modal fade" id="searchModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Buscar por ID</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="searchForm">
+                    <div class="mb-3">
+                        <label class="form-label">ID</label>
+                        <input type="number" class="form-control" id="searchId" required min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-select" id="searchType">
+                            <option value="item">Item</option>
+                            <option value="compartimento">Compartimento</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                </form>
+                <div id="searchResult" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const TOKEN_KEY = 'jwtToken';
+    const API = '/api/v1';
+
+    function saveToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+    function getToken() { return localStorage.getItem(TOKEN_KEY); }
+    function removeToken() { localStorage.removeItem(TOKEN_KEY); }
+
+    function getRole() {
+        const token = getToken();
+        if (!token) return null;
+        try {
+            const parts = token.split('.');
+            if (parts.length !== 3) return null;
+            let payload = parts[1];
+            while (payload.length % 4 !== 0) payload += '=';
+            payload = payload.replace(/-/g, '+').replace(/_/g, '/');
+            const decoded = JSON.parse(atob(payload));
+            const role = decoded.role;
+            return role ? role.replace('ROLE_', '') : null;
+        } catch (e) {
+            console.error('Erro ao decodificar role:', e);
+            return null;
+        }
+    }
+
+    function logUserStatus() {
+        const token = getToken();
+        const role = getRole();
+
+        if (!token) {
+            console.log('%c[STATUS] Você está DESLOGADO.', 'color: red; font-weight: bold;');
+        } else if (role === 'ADMIN') {
+            console.log('%c[STATUS] Você está logado como ADMINISTRADOR.', 'color: green; font-weight: bold;');
+        } else if (role === 'USER') {
+            console.log('%c[STATUS] Você está logado como USUÁRIO.', 'color: blue; font-weight: bold;');
+        } else {
+            console.log('%c[STATUS] Token inválido ou role desconhecida.', 'color: orange; font-weight: bold;');
+        }
+    }
+
+    function refreshAuthUI() {
+        const token = getToken();
+        const role = getRole();
+        const isAdmin = role === 'ADMIN';
+
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = isAdmin ? '' : 'none';
+        });
+
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        if (token) {
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'inline-block';
+
+            const modalEl = document.getElementById('loginModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        } else {
+            loginBtn.style.display = 'inline-block';
+            logoutBtn.style.display = 'none';
+        }
+
+        // LOG DO STATUS
+        logUserStatus();
+    }
+
+    // Intercepta fetch para adicionar JWT
+    const originalFetch = window.fetch;
+    window.fetch = async (input, init = {}) => {
+        const token = getToken();
+        if (token) {
+            init.headers = init.headers || {};
+            init.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return originalFetch(input, init);
+    };
+
+    // LOGIN
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginSenha').value;
+        const error = document.getElementById('loginError');
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            if (!res.ok) throw new Error('Credenciais inválidas');
+            const data = await res.json();
+            saveToken(data.token);
+            refreshAuthUI(); // LOGA STATUS
+            await Promise.all([fetchItems(), fetchCompartimentos()]);
+        } catch (err) {
+            error.textContent = err.message;
+        }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        removeToken();
+        refreshAuthUI(); // LOGA "DESLOGADO"
+        document.querySelectorAll('tbody').forEach(t => t.innerHTML = '');
+        const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+        modal.show();
+    });
+
+    // BUSCAR POR ID
+    document.getElementById('searchForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = document.getElementById('searchId').value;
+        const type = document.getElementById('searchType').value;
+        const resultDiv = document.getElementById('searchResult');
+        resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div>';
+        try {
+            const res = await fetch(`${API}/${type}s/${id}`);
+            if (!res.ok) throw new Error('Não encontrado');
+            const data = await res.json();
+            resultDiv.innerHTML = `<pre class="bg-light p-3 rounded border">${JSON.stringify(data, null, 2)}</pre>`;
+        } catch (err) {
+            resultDiv.innerHTML = `<div class="text-danger">${err.message}</div>`;
+        }
+    });
+
+    // ITENS
+    async function fetchItems() {
+        try {
+            const res = await fetch(`${API}/itens`);
+            if (!res.ok) throw new Error('Falha ao carregar itens');
+            const itens = await res.json();
+            const tbody = document.querySelector('#itensTable tbody');
+            tbody.innerHTML = '';
+            itens.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.nome}</td>
+                    <td>${item.dataDeValidade}</td>
+                    <td>${item.categoria}</td>
+                    <td class="admin-only">
+                        <button class="btn btn-warning btn-sm" onclick="editItem(${item.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) { alert(err.message); }
+    }
+
+    window.openItemForm = () => {
+        document.getElementById('itemModalTitle').textContent = 'Adicionar Item';
+        document.getElementById('itemForm').reset();
+        document.getElementById('itemId').value = '';
+    };
+
+    window.editItem = async (id) => {
+        try {
+            const res = await fetch(`${API}/itens/${id}`);
+            if (!res.ok) throw new Error('Item não encontrado');
+            const item = await res.json();
+            document.getElementById('itemModalTitle').textContent = 'Editar Item';
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemNome').value = item.nome;
+            document.getElementById('itemValidade').value = item.dataDeValidade;
+            document.getElementById('itemCategoria').value = item.categoria;
+            new bootstrap.Modal(document.getElementById('itemModal')).show();
+        } catch (err) { alert(err.message); }
+    };
+
+    window.deleteItem = async (id) => {
+        if (!confirm('Excluir item?')) return;
+        try {
+            const res = await fetch(`${API}/itens/${id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Erro ao excluir');
+            fetchItems();
+        } catch (err) { alert(err.message); }
+    };
+
+    document.getElementById('itemForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = document.getElementById('itemId').value;
+        const payload = {
+            nome: document.getElementById('itemNome').value,
+            dataDeValidade: document.getElementById('itemValidade').value,
+            categoria: document.getElementById('itemCategoria').value
+        };
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API}/itens/${id}` : `${API}/itens`;
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!res.ok) throw new Error('Erro ao salvar');
+            bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+            fetchItems();
+        } catch (err) { alert(err.message); }
+    });
+
+    // COMPARTIMENTOS
+    async function fetchCompartimentos() {
+        try {
+            const [itensRes, compRes] = await Promise.all([fetch(`${API}/itens`), fetch(`${API}/compartimentos`)]);
+            const itens = await itensRes.json();
+            const compartimentos = await compRes.json();
+
+            const select = document.getElementById('compartimentoItemId');
+            select.innerHTML = '<option value="">Nenhum</option>';
+            itens.forEach(i => select.innerHTML += `<option value="${i.id}">${i.nome}</option>`);
+
+            const tbody = document.querySelector('#compartimentosTable tbody');
+            tbody.innerHTML = '';
+            compartimentos.forEach(c => {
+                const itemNome = c.itemId ? itens.find(i => i.id === c.itemId)?.nome || '—' : '—';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.id}</td>
+                    <td>${c.nome}</td>
+                    <td>${itemNome}</td>
+                    <td class="admin-only">
+                        <button class="btn btn-warning btn-sm" onclick="editCompartimento(${c.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCompartimento(${c.id})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) { alert('Erro ao carregar compartimentos'); }
+    }
+
+    window.openCompartimentoForm = () => {
+        document.getElementById('compartimentoModalTitle').textContent = 'Adicionar Compartimento';
+        document.getElementById('compartimentoForm').reset();
+        document.getElementById('compartimentoId').value = '';
+    };
+
+    window.editCompartimento = async (id) => {
+        try {
+            const res = await fetch(`${API}/compartimentos/${id}`);
+            if (!res.ok) throw new Error('Compartimento não encontrado');
+            const c = await res.json();
+            document.getElementById('compartimentoModalTitle').textContent = 'Editar Compartimento';
+            document.getElementById('compartimentoId').value = c.id;
+            document.getElementById('compartimentoNome').value = c.nome;
+            document.getElementById('compartimentoItemId').value = c.itemId || '';
+            new bootstrap.Modal(document.getElementById('compartimentoModal')).show();
+        } catch (err) { alert(err.message); }
+    };
+
+    window.deleteCompartimento = async (id) => {
+        if (!confirm('Excluir compartimento?')) return;
+        try {
+            const res = await fetch(`${API}/compartimentos/${id}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Erro ao excluir');
+            fetchCompartimentos();
+        } catch (err) { alert(err.message); }
+    };
+
+    document.getElementById('compartimentoForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = document.getElementById('compartimentoId').value;
+        const payload = {
+            nome: document.getElementById('compartimentoNome').value,
+            itemId: document.getElementById('compartimentoItemId').value || null
+        };
+        try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API}/compartimentos/${id}` : `${API}/compartimentos`;
+            const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!res.ok) throw new Error('Erro ao salvar');
+            bootstrap.Modal.getInstance(document.getElementById('compartimentoModal')).hide();
+            fetchCompartimentos();
+        } catch (err) { alert(err.message); }
+    });
+
+    // INIT SEGURO
+    document.addEventListener('DOMContentLoaded', () => {
+        refreshAuthUI(); // LOGA STATUS
+
+        if (getToken()) {
+            Promise.all([fetchItems(), fetchCompartimentos()]).catch(console.error);
+        } else {
+            const modal = new bootstrap.Modal(document.getElementById('loginModal'));
+            modal.show();
+        }
+    });
+</script>
 </body>
 </html>
