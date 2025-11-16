@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CompartimentoDTO {
-    private Long id;        // ID do compartimento
-    private String nome;    // Nome do compartimento (ex: Geladeira, Armário)
-    private Long itemId;    // ID do Item que está dentro do compartimento (pode ser null)
+    private Long id;
+    private String nome;
+    private Long itemId;
 }
