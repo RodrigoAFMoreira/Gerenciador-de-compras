@@ -7,6 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import java.util.Date;
+import br.pucpr.gerenciadorDeCompras.model.User;
+import br.pucpr.gerenciadorDeCompras.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @RequiredArgsConstructor
@@ -14,11 +17,37 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
+    private final UserRepository userRepository;  // Add this injection
+    private final PasswordEncoder passwordEncoder;  // Add this too
 
     public AuthResponse authenticate(AuthRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        String token = jwtService.generateToken(userDetails);
+        AuthResponse response = new AuthResponse();
+        response.setEmail(request.getEmail());
+        response.setToken(token);
+        response.setExpires(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)); // 24h
+        return response;
+    }
+
+    // New register method
+    public AuthResponse register(RegisterRequest request) {
+        // Build the user
+        User user = User.builder()
+                .email(request.getEmail())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .password(passwordEncoder.encode(request.getPassword()))  // Encode pass
+                .role(Role.USER)  // Default to USER; change if needed
+                .build();
+
+        // Save to DB
+        userRepository.save(user);
+
+        // Generate token like in login
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtService.generateToken(userDetails);
         AuthResponse response = new AuthResponse();

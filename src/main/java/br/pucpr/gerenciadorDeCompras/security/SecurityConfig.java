@@ -33,7 +33,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/login/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()  // Covers /login and /register
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/itens").hasAnyRole("ADMIN", "USER")
