@@ -17,8 +17,8 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
-    private final UserRepository userRepository;  // Add this injection
-    private final PasswordEncoder passwordEncoder;  // Add this too
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthResponse authenticate(AuthRequest request) {
         authenticationManager.authenticate(
@@ -33,20 +33,20 @@ public class AuthService {
         return response;
     }
 
-    // New register method
     public AuthResponse register(RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
         // Build the user
         User user = User.builder()
                 .email(request.getEmail())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
-                .password(passwordEncoder.encode(request.getPassword()))  // Encode pass
-                .role(Role.USER)  // Default to USER; change if needed
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER)
                 .build();
-
         // Save to DB
         userRepository.save(user);
-
         // Generate token like in login
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtService.generateToken(userDetails);

@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
-@EntityScan(basePackages = "br.pucpr.gerenciadorDeCompras.model")  // Escaneia as entities
-@EnableJpaRepositories(basePackages = "br.pucpr.gerenciadorDeCompras.repository")  // Escaneia os repos
+@EntityScan(basePackages = "br.pucpr.gerenciadorDeCompras.model")
+@EnableJpaRepositories(basePackages = "br.pucpr.gerenciadorDeCompras.repository")
 public class GerenciadorDeComprasApplication {
     public static void main(String[] args) {
         SpringApplication.run(GerenciadorDeComprasApplication.class, args);
