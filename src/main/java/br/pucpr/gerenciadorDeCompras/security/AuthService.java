@@ -37,7 +37,6 @@ public class AuthService {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
-        // Build the user
         User user = User.builder()
                 .email(request.getEmail())
                 .firstName(request.getFirstName())
@@ -45,9 +44,7 @@ public class AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .build();
-        // Save to DB
         userRepository.save(user);
-        // Generate token like in login
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
         String token = jwtService.generateToken(userDetails);
         AuthResponse response = new AuthResponse();
